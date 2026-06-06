@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#c8a96e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LI Planner">
+<title>LinkedIn Planner — Matteo Grandi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Karla:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0e0d;--s1:#141817;--s2:#1c211e;--s3:#232b27;--border:#2c342f;--gold:#c8a96e;--gold2:#e8d5a8;--gold3:rgba(200,169,110,0.12);--green:#3d6b4f;--green2:#5a9e72;--text:#e6e2d8;--muted:#6e7a70;--muted2:#4a5248;--blue:#3d8fab;--purple:#7a5fa8;--red:#b85c40;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Karla',sans-serif}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh}
+.hdr{padding:calc(var(--safe-top) + 14px) 20px 14px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:36px;height:36px;border-radius:9px;background:#0077b5;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:900;font-size:16px;color:#fff;flex-shrink:0}
+.hdr-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:var(--text);line-height:1}
+.hdr-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.hdr-badge{background:var(--gold3);border:1px solid rgba(200,169,110,0.3);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.5px}
+.nav{display:flex;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0}
+.nav-tab{flex:1;padding:12px 4px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-tab svg{width:18px;height:18px;opacity:.5;transition:opacity .2s}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.nav-tab.active svg{opacity:1}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.view{display:none;padding:20px;padding-bottom:calc(var(--safe-bot) + 20px)}
+.view.active{display:block}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.sec-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px}
+.field select,.field textarea,.field input{width:100%;padding:12px 14px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Karla',sans-serif;font-size:14px;-webkit-appearance:none;appearance:none;transition:border-color .2s}
+.field select:focus,.field textarea:focus,.field input:focus{outline:none;border-color:var(--gold)}
+.field textarea{resize:none;line-height:1.6}
+.sel-wrap{position:relative}
+.sel-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.chip{padding:6px 13px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;background:var(--s2);transition:all .15s}
+.chip.on{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700}
+.tone-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.tone-btn{padding:10px 8px;border-radius:10px;border:1px solid var(--border);background:var(--s2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;line-height:1.3}
+.tone-btn.on{background:var(--s3);border-color:var(--gold);color:var(--gold)}
+.gen-btn{width:100%;padding:16px;border-radius:12px;border:none;background:var(--gold);color:var(--bg);font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:4px}
+.gen-btn:active{transform:scale(.98);background:var(--gold2)}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed}
+.gen-btn .spin{width:20px;height:20px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.output-card{background:var(--s2);border:1px solid var(--border);border-radius:14px;margin-top:20px;overflow:hidden;display:none}
+.output-card.show{display:block}
+.output-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.output-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--green2)}
+.char-badge{font-size:11px;color:var(--muted)}
+.char-badge.warn{color:var(--red)}
+.output-text{padding:16px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;min-height:120px}
+.output-actions{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)}
+.out-btn{padding:14px;font-family:'Karla',sans-serif;font-size:13px;font-weight:700;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:1px}
+.out-btn:first-child{border-right:1px solid var(--border)}
+.out-btn:active{background:var(--s3)}
+.out-btn.primary{color:var(--gold)}
+.img-prompt-block{margin:0 16px 16px;padding:12px 14px;background:rgba(122,95,168,.08);border:1px solid rgba(122,95,168,.2);border-radius:10px}
+.img-prompt-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--purple);text-transform:uppercase;margin-bottom:6px}
+.img-prompt-text{font-size:12px;color:var(--muted);line-height:1.6}
+.posts-filters{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;margin-bottom:18px}
+.posts-filters::-webkit-scrollbar{display:none}
+.filt{padding:7px 15px;border-radius:20px;border:1px solid var(--border);background:var(--s2);color:var(--muted);font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.8px;flex-shrink:0}
+.filt.on{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+.post-card{background:var(--s2);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .2s}
+.post-card-top{display:flex;gap:0}
+.post-card-accent{width:4px;flex-shrink:0}
+.cat-ma .post-card-accent{background:var(--blue)}
+.cat-energy .post-card-accent{background:var(--green2)}
+.cat-leadership .post-card-accent{background:var(--gold)}
+.cat-regulation .post-card-accent{background:var(--purple)}
+.post-card-body{flex:1;padding:14px 14px 14px 12px}
+.post-card-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.post-card-date{font-size:11px;color:var(--muted);font-weight:500}
+.post-card-badges{display:flex;gap:5px}
+.badge{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:3px 7px;border-radius:4px}
+.badge-lang{background:var(--s3);color:var(--muted)}
+.cat-ma .badge-cat{background:rgba(61,143,171,.15);color:var(--blue)}
+.cat-energy .badge-cat{background:rgba(90,158,114,.15);color:var(--green2)}
+.cat-leadership .badge-cat{background:var(--gold3);color:var(--gold)}
+.cat-regulation .badge-cat{background:rgba(122,95,168,.15);color:var(--purple)}
+.post-card-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;line-height:1.3;margin-bottom:6px}
+.post-card-hook{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.post-card-content{font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;display:none;padding:12px 14px;border-top:1px solid var(--border)}
+.post-card-content.open{display:block}
+.post-card-footer{display:flex;border-top:1px solid var(--border)}
+.pf-btn{flex:1;padding:11px 8px;font-family:'Karla',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
+.pf-btn:not(:last-child){border-right:1px solid var(--border)}
+.pf-btn:active{background:var(--s3)}
+.pf-btn.gen{color:var(--gold)}
+.pf-btn.pub{color:var(--green2)}
+.gen-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1.2s infinite}
+.gen-dot:nth-child(2){animation-delay:.2s}
+.gen-dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-month-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--gold)}
+.cal-arrow{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cal-arrow:active{background:var(--s3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:12px;overflow:hidden}
+.cal-day-hdr{background:var(--s2);text-align:center;padding:8px 2px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted2)}
+.cal-day{background:var(--s1);min-height:60px;padding:5px 4px;cursor:pointer;transition:background .1s}
+.cal-day:active{background:var(--s2)}
+.cal-day.other{opacity:.4}
+.cal-day.today{background:rgba(200,169,110,.06)}
+.cal-day-num{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:3px}
+.cal-day.today .cal-day-num{color:var(--gold);font-weight:700}
+.cal-pill{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.cal-pill.cat-ma{background:rgba(61,143,171,.2);color:var(--blue)}
+.cal-pill.cat-energy{background:rgba(90,158,114,.2);color:var(--green2)}
+.cal-pill.cat-leadership{background:rgba(200,169,110,.2);color:var(--gold)}
+.cal-pill.cat-regulation{background:rgba(122,95,168,.2);color:var(--purple)}
+.stats-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-box{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--gold);line-height:1}
+.stat-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.profile-card{background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:16px}
+.profile-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--green2));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--bg);flex-shrink:0}
+.profile-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700}
+.profile-role{font-size:12px;color:var(--muted);margin-top:2px}
+.settings-block{background:var(--s2);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:14px;font-weight:500}
+.settings-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.toggle{width:46px;height:26px;border-radius:13px;background:var(--border);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--green2)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(20px)}
+.ics-btn{width:100%;padding:14px;border-radius:12px;border:1px solid var(--green2);background:transparent;color:var(--green2);font-family:'Karla',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.ics-btn:active{background:rgba(90,158,114,.1)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:flex-end}
+.modal-bg.open{display:flex}
+.modal{width:100%;background:var(--s1);border-radius:20px 20px 0 0;padding:20px 20px calc(var(--safe-bot) + 20px);max-height:85vh;overflow-y:auto}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:16px}
+.toast{position:fixed;bottom:calc(var(--safe-bot) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--s3);border:1px solid var(--border);color:var(--text);padding:11px 20px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.gold{border-color:rgba(200,169,110,.4);color:var(--gold)}
+/* iOS install banner */
+.ios-banner{background:var(--s2);border:1px solid rgba(200,169,110,.3);border-radius:14px;padding:16px;margin-bottom:20px;display:none}
+.ios-banner.show{display:block}
+@media(min-width:600px){.view{max-width:480px;margin:0 auto}.tone-grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">in</div>
+      <div>
+        <div class="hdr-title">LI Planner</div>
+        <div class="hdr-sub">Matteo Grandi · Verdalia Bio</div>
+      </div>
+    </div>
+    <div class="hdr-badge" id="hdr-badge">0 post</div>
+  </div>
+  <div class="nav">
+    <div class="nav-tab active" onclick="switchTab('generate',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Genera
+    </div>
+    <div class="nav-tab" onclick="switchTab('posts',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Post
+    </div>
+    <div class="nav-tab" onclick="switchTab('calendar',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Calendario
+    </div>
+    <div class="nav-tab" onclick="switchTab('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+      Profilo
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- GENERA -->
+    <div class="view active" id="view-generate">
+      <div class="ios-banner" id="ios-banner">
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px">📲 Installa come app</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">Tocca <strong>Condividi</strong> → <strong>"Aggiungi a schermata Home"</strong> per avere l'icona sul desktop.</div>
+      </div>
+      <div class="sec-title">Genera Post</div>
+      <div class="sec-sub">AI calibrata sulla tua voce — M&A · Biomethane · Leadership</div>
+      <div class="field">
+        <label>Categoria</label>
+        <div class="sel-wrap"><select id="g-cat" onchange="updateTopics()">
+          <option value="ma">M&A / Deal Flow</option>
+          <option value="energy">Energia / Biomethane</option>
+          <option value="leadership">Leadership & Management</option>
+          <option value="regulation">Regolatorio / Policy</option>
+        </select></div>
+      </div>
+      <div class="field">
+        <label>Argomento rapido</label>
+        <div class="chips" id="topic-chips"></div>
+      </div>
+      <div class="field">
+        <label>Spunto personalizzato</label>
+        <textarea id="g-topic" rows="3" placeholder="Es: Il digestato nell'economia circolare..."></textarea>
+      </div>
+      <div class="field">
+        <label>Tono</label>
+        <div class="tone-grid" id="tone-grid">
+          <div class="tone-btn on" data-tone="professionale" onclick="selTone(this)">Autorevole</div>
+          <div class="tone-btn" data-tone="riflessivo" onclick="selTone(this)">Riflessivo</div>
+          <div class="tone-btn" data-tone="provocatorio" onclick="selTone(this)">Provocatorio</div>
+          <div class="tone-btn" data-tone="pratico" onclick="selTone(this)">Pratico</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Lingua</label>
+        <div class="tone-grid">
+          <div class="tone-btn on" data-lang="IT" onclick="selLang(this)">🇮🇹 Italiano</div>
+          <div class="tone-btn" data-lang="EN" onclick="selLang(this)">🇬🇧 English</div>
+        </div>
+      </div>
+      <button class="gen-btn" id="gen-btn" onclick="generatePost()">
+        <div class="spin" id="gen-spin"></div>
+        <span id="gen-label">✦ Genera Post</span>
+      </button>
+      <div class="output-card" id="output-card">
+        <div class="output-header">
+          <span class="output-label">✓ Post generato</span>
+          <span class="char-badge" id="char-badge"></span>
+        </div>
+        <div class="output-text" id="output-text"></div>
+        <div class="img-prompt-block" id="img-prompt-block" style="display:none">
+          <div class="img-prompt-lbl">📷 Prompt immagine (Midjourney)</div>
+          <div class="img-prompt-text" id="img-prompt-text"></div>
+        </div>
+        <div class="output-actions">
+          <button class="out-btn" onclick="copyOutput()">📋 Copia</button>
+          <button class="out-btn primary" onclick="saveToList()">💾 Salva</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSTS -->
+    <div class="view" id="view-posts">
+      <div class="sec-title">I tuoi Post</div>
+      <div class="stats-strip">
+        <div class="stat-box"><div class="stat-n" id="st-total">0</div><div class="stat-l">Totale</div></div>
+        <div class="stat-box"><div class="stat-n" id="st-sched">0</div><div class="stat-l">Schedulati</div></div>
+        <div class="stat-box"><div class="stat-n" id="st-pub">0</div><div class="stat-l">Pubblicati</div></div>
+      </div>
+      <div class="posts-filters">
+        <div class="filt on" onclick="filterPosts('all',this)">Tutti</div>
+        <div class="filt" onclick="filterPosts('draft',this)">Bozze</div>
+        <div class="filt" onclick="filterPosts('scheduled',this)">Schedulati</div>
+        <div class="filt" onclick="filterPosts('published',this)">Pubblicati</div>
+        <div class="filt" onclick="filterPosts('ma',this)">M&A</div>
+        <div class="filt" onclick="filterPosts('energy',this)">Energia</div>
+        <div class="filt" onclick="filterPosts('leadership',this)">Leadership</div>
+        <div class="filt" onclick="filterPosts('regulation',this)">Policy</div>
+      </div>
+      <div id="posts-list"></div>
+      <button class="ics-btn" onclick="exportICS()">📅 Esporta .ics per Calendario</button>
+    </div>
+
+    <!-- CALENDARIO -->
+    <div class="view" id="view-calendar">
+      <div class="cal-nav">
+        <button class="cal-arrow" onclick="calMonth(-1)">‹</button>
+        <div class="cal-month-title" id="cal-title"></div>
+        <button class="cal-arrow" onclick="calMonth(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div style="margin-top:16px;font-size:11px;color:var(--muted);line-height:2">
+        <span style="color:var(--blue)">■</span> M&A &nbsp;
+        <span style="color:var(--green2)">■</span> Energia &nbsp;
+        <span style="color:var(--gold)">■</span> Leadership &nbsp;
+        <span style="color:var(--purple)">■</span> Policy
+      </div>
+    </div>
+
+    <!-- PROFILO / SETTINGS -->
+    <div class="view" id="view-settings">
+      <div class="profile-card">
+        <div class="profile-avatar">MG</div>
+        <div>
+          <div class="profile-name">Matteo Grandi</div>
+          <div class="profile-role">Corporate Dev · M&A · Verdalia Bio</div>
+        </div>
+      </div>
+      <div class="settings-block">
+        <div class="settings-row">
+          <div><div class="settings-label">Post totali</div><div class="settings-sub">Nel piano editoriale</div></div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--gold)" id="s-count">0</div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Prompt immagine AI</div><div class="settings-sub">Suggerimento Midjourney</div></div>
+          <div class="toggle on" id="t-imgprompt" onclick="this.classList.toggle('on');prefs.imgprompt=this.classList.contains('on');savePrefs()"></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Salvataggio automatico</div><div class="settings-sub">Salva ogni post generato</div></div>
+          <div class="toggle" id="t-autosave" onclick="this.classList.toggle('on');prefs.autosave=this.classList.contains('on');savePrefs()"></div>
+        </div>
+      </div>
+      <div class="settings-block">
+        <div class="settings-row">
+          <div><div class="settings-label">Genera campagna H2 2026</div><div class="settings-sub">50 post Lun/Gio — AI completa</div></div>
+          <button onclick="genFullCampaign()" style="background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:'Karla',sans-serif">Avvia</button>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Elimina tutti i post</div><div class="settings-sub">Reset completo</div></div>
+          <button onclick="resetAll()" style="background:transparent;color:var(--red);border:1px solid var(--red);border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:'Karla',sans-serif">Reset</button>
+        </div>
+      </div>
+      <button class="ics-btn" onclick="exportICS()">📅 Esporta tutto in .ics</button>
+      <div style="text-align:center;margin-top:24px;font-size:11px;color:var(--muted2)">LI Planner v1.0 · Verdalia Bio · 2026</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="post-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">Post</div>
+    <div id="modal-body"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Karla',sans-serif;font-weight:700;cursor:pointer">Chiudi</button>
+      <button onclick="saveModalPost()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--green2);color:#fff;font-family:'Karla',sans-serif;font-weight:700;cursor:pointer">Salva modifiche</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MONTHS=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const CAT_LABEL={ma:'M&A',energy:'Energia',leadership:'Leadership',regulation:'Policy'};
+const STATUS_LABEL={draft:'Bozza',scheduled:'Schedulato',published:'Pubblicato'};
+
+let posts=JSON.parse(localStorage.getItem('mg_li_v2')||'[]');
+let prefs=JSON.parse(localStorage.getItem('mg_li_prefs')||'{"imgprompt":true,"autosave":false}');
+let calDate=new Date();
+let currentFilter='all';
+let lastGenText='';
+let lastGenImg='';
+let modalPostId=null;
+let selToneVal='professionale';
+let selLangVal='IT';
+
+const TOPICS={
+  ma:['M&A bioenergy Italia','Valutazione asset rinnovabili','Due diligence regolatorio','Deal structuring','Consolidamento di mercato'],
+  energy:['Biometano e PNRR','DM Biometano GSE','Digestato economia circolare','H₂S management','Biomethane in Europa'],
+  leadership:['Governance scalable','Accountability vs autorità','Decisioni in incertezza','Leadership in M&A','Team cross-funzionali'],
+  regulation:['Regolatorio italiano rinnovabili','GSE incentivi biometano','D.Lgs. 152 digestato','Autorizzazioni greenfield','EU policy biogas']
+};
+
+const CAMPAIGN=[
+  {id:'c01',date:'2026-07-02',cat:'ma',lang:'IT',title:'Il mercato M&A bioenergy italiano: dove siamo nel 2026',hook:'Sei mesi fa parlavo di consolidamento nel settore bioenergy. Eccoci.'},
+  {id:'c02',date:'2026-07-06',cat:'leadership',lang:'IT',title:'Perché i migliori manager fanno meno di quello che pensano',hook:'Controintuitivo ma vero: i leader più efficaci che conosco intervengono meno degli altri.'},
+  {id:'c03',date:'2026-07-09',cat:'energy',lang:'EN',title:"Italy's biomethane revolution: a field perspective",hook:"Three years ago, biomethane was a niche topic in Italian energy circles."},
+  {id:'c04',date:'2026-07-13',cat:'leadership',lang:'IT',title:'La decisione più difficile che ho imparato a prendere',hook:'Non è licenziare qualcuno. Non è rifiutare un deal. È smettere di aspettare il momento giusto.'},
+  {id:'c05',date:'2026-07-16',cat:'regulation',lang:'IT',title:'Il PNIEC e il biometano: obiettivi ambiziosi, execution complessa',hook:"L'Italia ha fissato obiettivi ambiziosi per il biometano. Quanto sono realistici?"},
+  {id:'c06',date:'2026-07-20',cat:'regulation',lang:'IT',title:'DM Biometano: tre cose che gli operatori ancora sottovalutano',hook:'Ho visto troppi business plan costruiti su assunzioni regolatori fragili.'},
+  {id:'c07',date:'2026-07-23',cat:'ma',lang:'EN',title:'What makes a bioenergy M&A deal actually work',hook:"After working on multiple transactions in the Italian renewable sector, I've stopped believing in 'good deals' and 'bad deals'."},
+  {id:'c08',date:'2026-07-27',cat:'energy',lang:'IT',title:'Feedstock per il biometano: la variabile che sposta il business case',hook:'Tutti parlano di incentivi. Pochi parlano di quanto costa davvero procurarsi le materie prime.'},
+  {id:'c09',date:'2026-07-30',cat:'energy',lang:'IT',title:'Digestato: la risorsa che il settore non ha ancora capito',hook:'Si parla di biometano, di incentivi, di OPEX. Quasi nessuno parla seriamente di digestato.'},
+  {id:'c10',date:'2026-08-03',cat:'leadership',lang:'EN',title:'Why governance is the real competitive advantage in energy transition',hook:'Everyone is talking about technology and capital. Few are talking about organizational design.'},
+  {id:'c11',date:'2026-08-06',cat:'energy',lang:'EN',title:'Circular economy in Italian biogas: theory vs practice',hook:'The theory is compelling: waste in, energy and fertilizer out. The practice is messier.'},
+  {id:'c12',date:'2026-08-10',cat:'regulation',lang:'IT',title:'Autorizzazioni per impianti biogas: quello che nessuno ti dice prima',hook:"Ho seguito l'iter autorizzativo di diversi impianti. Ogni volta imparo qualcosa di nuovo."},
+  {id:'c13',date:'2026-08-13',cat:'leadership',lang:'IT',title:"La trappola dell'urgenza nel management moderno",hook:'Tutto è urgente. Tutto è priorità. E quindi nulla lo è davvero.'},
+  {id:'c14',date:'2026-08-17',cat:'ma',lang:'IT',title:'Valutare un asset bioenergy: i multipli contano meno di quanto pensi',hook:'EV/EBITDA. EV/MWh. IRR. I numeri ci sono, ma raccontano solo metà della storia.'},
+  {id:'c15',date:'2026-08-20',cat:'ma',lang:'EN',title:'Seller vs buyer perspective in bioenergy transactions',hook:"I've been on both sides of the table in energy M&A. The difference in perspective is more profound than most people expect."},
+  {id:'c16',date:'2026-08-24',cat:'energy',lang:'EN',title:'The real cost of biomethane: beyond CAPEX and incentives',hook:'Every time I review a biomethane project model, I find the same two blind spots.'},
+  {id:'c17',date:'2026-08-27',cat:'leadership',lang:'IT',title:'Cosa ho imparato lavorando con advisor di primo livello',hook:'Goldman Sachs, Rothschild, i grandi nomi. Lavorarci fianco a fianco insegna molto.'},
+  {id:'c18',date:'2026-08-31',cat:'regulation',lang:'EN',title:"EU biogas policy in 2026: where we stand and what's missing",hook:'REPowerEU set ambitious targets. Reality, as always, is more nuanced.'},
+  {id:'c19',date:'2026-09-03',cat:'energy',lang:'EN',title:'The biogas-to-biomethane upgrade decision: when does it make sense?',hook:"Not every biogas plant should become a biomethane plant. Here's the framework I use."},
+  {id:'c20',date:'2026-09-07',cat:'ma',lang:'IT',title:'Il momento in cui un deal muore — e cosa fare dopo',hook:'È successo. Mesi di lavoro, due diligence, negoziazioni. Poi il silenzio.'},
+  {id:'c21',date:'2026-09-10',cat:'ma',lang:'EN',title:'ESG in bioenergy M&A: checkbox or competitive edge?',hook:"In every transaction I've worked on recently, ESG has come up. But how much does it actually drive value?"},
+  {id:'c22',date:'2026-09-14',cat:'leadership',lang:'EN',title:'Matrix organizations in fast-growing companies: a survival guide',hook:"I've seen matrix structures work brilliantly and fail spectacularly. The difference is rarely about the people."},
+  {id:'c23',date:'2026-09-17',cat:'energy',lang:'IT',title:"Biometano e agricoltura: un'alleanza ancora incompiuta",hook:"Il potenziale della filiera agro-energetica italiana è enorme. Eppure la collaborazione è ancora frammentata."},
+  {id:'c24',date:'2026-09-21',cat:'regulation',lang:'IT',title:"GSE e incentivi: gestire la complessità senza perdere il filo",hook:'Il sistema incentivante italiano per le rinnovabili è potente. È anche labirintico.'},
+  {id:'c25',date:'2026-09-24',cat:'ma',lang:'EN',title:'Corporate development in energy transition: lessons from the field',hook:"I've spent the last few years working on M&A transactions in the bioenergy sector."},
+  {id:'c26',date:'2026-09-28',cat:'ma',lang:'IT',title:"Come strutturare un'offerta in un mercato competitivo",hook:'Quando ci sono più compratori sullo stesso asset, vincere non è solo una questione di prezzo.'},
+  {id:'c27',date:'2026-10-01',cat:'regulation',lang:'IT',title:'Criteri CIC e materie prime ammissibili: le trappole operative',hook:'Il sistema di incentivazione biometano è costruito su categorie ben definite. Ma nella pratica, i casi limite sono molti.'},
+  {id:'c28',date:'2026-10-05',cat:'leadership',lang:'IT',title:'Tre conversazioni difficili che ogni manager deve saper fare',hook:'Non le conversazioni sui numeri. Quelle sulle persone.'},
+  {id:'c29',date:'2026-10-08',cat:'regulation',lang:'EN',title:'Composted digestate in Italy: the regulatory puzzle nobody talks about',hook:'Between EU Regulation 1069/2009 and Italian environmental law, operating a certified digestate chain is complex.'},
+  {id:'c30',date:'2026-10-12',cat:'ma',lang:'IT',title:"Greenfield vs acquisizione: come scelgo quando analizzare un'opportunità",hook:"La domanda che mi fanno più spesso non è 'quanto vale l'asset?' ma 'costruiamo o acquistiamo?'"},
+  {id:'c31',date:'2026-10-15',cat:'leadership',lang:'EN',title:'The loneliness of senior leadership — and what to do about it',hook:"Nobody talks about this enough. The higher you go in an organization, the fewer people you can be fully honest with."},
+  {id:'c32',date:'2026-10-19',cat:'energy',lang:'EN',title:'Biomethane OPEX in Italy: the numbers that business plans forget',hook:"I've reviewed dozens of biomethane project models. The OPEX assumptions are almost always optimistic."},
+  {id:'c33',date:'2026-10-22',cat:'leadership',lang:'IT',title:"Leadership in un settore in transizione: navigare l'incertezza",hook:'La transizione energetica non è solo una storia di tecnologia e capitali. È soprattutto una storia di leadership.'},
+  {id:'c34',date:'2026-10-26',cat:'regulation',lang:'IT',title:'Il futuro del biometano italiano: tre scenari per il 2028',hook:'Fare previsioni nel settore energetico è un esercizio ad alto rischio. Ma ragionare per scenari è utile.'},
+  {id:'c35',date:'2026-10-29',cat:'energy',lang:'EN',title:'Bio-LNG and bio-CNG in Italy: the next frontier or a distraction?',hook:'While the biomethane sector grows, a parallel conversation is emerging around bio-LNG and bio-CNG for transport.'},
+  {id:'c36',date:'2026-11-02',cat:'ma',lang:'EN',title:'The anatomy of a failed energy deal — and what to take from it',hook:"Not every transaction closes. And the ones that don't often teach more than the ones that do."},
+  {id:'c37',date:'2026-11-05',cat:'regulation',lang:'EN',title:'Bioenergy permitting reform in Italy: what would actually help',hook:"Having navigated multiple authorization processes, I have some opinions on what reform should look like."},
+  {id:'c38',date:'2026-11-09',cat:'leadership',lang:'EN',title:'What Hogan assessments actually reveal about leadership — my honest take',hook:"I've gone through leadership assessments, 360 reviews, and coaching sessions. Here's what was genuinely useful."},
+  {id:'c39',date:'2026-11-12',cat:'ma',lang:'IT',title:'La due diligence che nessuno fa — e che dovrebbe fare',hook:'Financial, legale, tecnica. La lista di check è sempre la stessa. Eppure manca quasi sempre la stessa cosa.'},
+  {id:'c40',date:'2026-11-16',cat:'regulation',lang:'IT',title:'Biometano e PNRR: opportunità reali o aspettative mal calibrate?',hook:'Ogni mese leggo di opportunità PNRR per le rinnovabili. Pochi però analizzano cosa significa davvero intercettare quei flussi.'},
+  {id:'c41',date:'2026-11-19',cat:'energy',lang:'IT',title:"Economia circolare negli impianti bioenergy: dov'è il vero valore",hook:"Biometano, compost, calore. L'impianto che produce solo una cosa sta lasciando soldi sul tavolo."},
+  {id:'c42',date:'2026-11-23',cat:'leadership',lang:'IT',title:'Cosa significa davvero essere strategici nel proprio lavoro',hook:'La parola strategico è diventata un contenitore vuoto. Proviamo a darle un significato operativo.'},
+  {id:'c43',date:'2026-11-26',cat:'ma',lang:'IT',title:'Il ruolo del CFO nelle operazioni M&A: oltre i numeri',hook:'In ogni deal che ho seguito, il CFO è stato la figura chiave. Non sempre nel modo in cui ci si aspetta.'},
+  {id:'c44',date:'2026-11-30',cat:'energy',lang:'EN',title:'European biomethane in 2026: a market coming of age',hook:'The EBA reports record-breaking growth. The market is real, the capital is flowing.'},
+  {id:'c45',date:'2026-12-03',cat:'ma',lang:'IT',title:'Il consolidamento del mercato bioenergy: chi sopravviverà ai prossimi tre anni',hook:'Nel 2024 contavamo centinaia di piccoli operatori. Nel 2028 quanti ce ne saranno?'},
+  {id:'c46',date:'2026-12-07',cat:'regulation',lang:'EN',title:'Italian biogas regulation in 2027: what to watch',hook:'Before looking ahead, a clear-eyed assessment of where Italian biogas regulation stands today.'},
+  {id:'c47',date:'2026-12-10',cat:'ma',lang:'IT',title:'Corporate development nel 2026: il mio bilancio',hook:"Un anno fa avevo un'agenda chiara. Come sempre, la realtà ha avuto altri piani."},
+  {id:'c48',date:'2026-12-14',cat:'energy',lang:'IT',title:"Bilancio energetico 2026: l'Italia del biometano tra aspettative e realtà",hook:'Un anno fa avevo delle aspettative sul settore. Facciamo un check onesto.'},
+  {id:'c49',date:'2026-12-17',cat:'leadership',lang:'EN',title:'On building teams in complex, fast-moving organizations',hook:"In the last few years I've been part of building teams from scratch and integrating acquired companies."},
+  {id:'c50',date:'2026-12-21',cat:'leadership',lang:'IT',title:'Fine anno: quello che mi ha insegnato il 2026',hook:'Non faccio liste di buoni propositi. Faccio un bilancio onesto.'},
+];
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function save(){localStorage.setItem('mg_li_v2',JSON.stringify(posts));updateBadge();updateStats()}
+function savePrefs(){localStorage.setItem('mg_li_prefs',JSON.stringify(prefs))}
+function fmtDate(d){const x=new Date(d+'T12:00:00');return x.getDate()+' '+MONTHS[x.getMonth()].slice(0,3)}
+
+function switchTab(tab,el){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+tab).classList.add('active');
+  if(tab==='posts')renderPosts();
+  if(tab==='calendar')renderCal();
+  if(tab==='settings'){document.getElementById('s-count').textContent=posts.length}
+}
+
+function updateTopics(){
+  const cat=document.getElementById('g-cat').value;
+  document.getElementById('topic-chips').innerHTML=TOPICS[cat].map(t=>`<div class="chip" onclick="selTopic(this,'${t}')">${t}</div>`).join('');
+}
+function selTopic(el,t){
+  document.querySelectorAll('#topic-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');document.getElementById('g-topic').value=t;
+}
+function selTone(el){document.querySelectorAll('.tone-btn[data-tone]').forEach(b=>b.classList.remove('on'));el.classList.add('on');selToneVal=el.dataset.tone}
+function selLang(el){document.querySelectorAll('.tone-btn[data-lang]').forEach(b=>b.classList.remove('on'));el.classList.add('on');selLangVal=el.dataset.lang}
+
+const SYS=`Sei un ghostwriter esperto di personal branding LinkedIn per executive italiani nel settore energetico.
+Scrivi per Matteo Grandi, senior manager specializzato in M&A, biomethane/bioenergy e governance aziendale presso Verdalia Bio (Italia).
+Voce: diretta, riflessiva, autorevole ma mai pomposa. Insight concreti del settore, mai generalizzazioni.
+Mai iniziare con frasi banali tipo "In un mondo sempre più...".
+Rispondi SOLO con JSON: {"content":"testo post LinkedIn","imgPrompt":"prompt fotografico realistico per Midjourney"}
+Zero markdown, zero backtick. Solo JSON.`;
+
+async function callAI(userPrompt){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:[{role:'user',content:userPrompt}]})});
+  const d=await r.json();
+  const raw=d.content?.find(b=>b.type==='text')?.text||'{}';
+  try{return JSON.parse(raw.replace(/```json|```/g,'').trim())}catch{return{content:raw,imgPrompt:''}}
+}
+
+async function generatePost(){
+  const topic=document.getElementById('g-topic').value.trim();
+  if(!topic){toast('Inserisci un argomento',false);return}
+  const cat=document.getElementById('g-cat').value;
+  const fmt=document.getElementById('g-format')?.value||'post';
+  const langInstr=selLangVal==='EN'?'Write entirely in English. Professional tone.':'Scrivi interamente in italiano.';
+  const catMap={ma:'M&A e deal flow bioenergy',energy:'energia rinnovabile e biometano in Italia',leadership:'leadership e governance aziendale',regulation:'normativa energetica italiana ed europea'};
+  const btn=document.getElementById('gen-btn');
+  const spin=document.getElementById('gen-spin');
+  btn.disabled=true;spin.style.display='block';
+  document.getElementById('gen-label').textContent='Generazione...';
+  document.getElementById('output-card').classList.remove('show');
+  const prompt=`${langInstr}\nTema: ${catMap[cat]}\nArgomento: "${topic}"\nTono: ${selToneVal}\nFormato: post LinkedIn (800-1500 caratteri) con hook forte, sviluppo in punti brevi, CTA finale e hashtag. Evita cliché. Specifico e autentico.\n${prefs.imgprompt?'Includi imgPrompt con descrizione fotografia realistica professionale.':'Imgprompt: stringa vuota.'}`;
+  try{
+    const res=await callAI(prompt);
+    lastGenText=res.content||'';lastGenImg=res.imgPrompt||'';
+    document.getElementById('output-text').textContent=lastGenText;
+    const len=lastGenText.length;
+    const cb=document.getElementById('char-badge');cb.textContent=len+' car.';cb.className='char-badge'+(len>3000?' warn':'');
+    const ipb=document.getElementById('img-prompt-block');
+    if(lastGenImg&&prefs.imgprompt){document.getElementById('img-prompt-text').textContent=lastGenImg;ipb.style.display='block'}else{ipb.style.display='none'}
+    document.getElementById('output-card').classList.add('show');
+    if(prefs.autosave)saveToList(true);
+  }catch(e){toast('Errore AI: '+e.message,false)}
+  btn.disabled=false;spin.style.display='none';document.getElementById('gen-label').textContent='✦ Genera Post';
+}
+
+function copyOutput(){if(!lastGenText)return;navigator.clipboard.writeText(lastGenText);toast('Copiato!',true)}
+function saveToList(auto=false){
+  if(!lastGenText)return;
+  const cat=document.getElementById('g-cat').value;
+  const topic=document.getElementById('g-topic').value.trim()||'Post generato';
+  posts.unshift({id:uid(),title:topic.slice(0,70),cat,lang:selLangVal,date:new Date().toISOString().split('T')[0],status:'draft',content:lastGenText,imgPrompt:lastGenImg,created:Date.now()});
+  save();if(!auto)toast('Salvato!',true);
+}
+
+function renderPosts(){
+  updateStats();
+  let filtered=posts;
+  if(currentFilter!=='all')filtered=posts.filter(p=>p.status===currentFilter||p.cat===currentFilter);
+  const list=document.getElementById('posts-list');
+  if(!filtered.length){list.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px;font-style:italic">Nessun post qui.</div>';return}
+  list.innerHTML=filtered.map(p=>`<div class="post-card cat-${p.cat}" id="pc-${p.id}">
+    <div class="post-card-top"><div class="post-card-accent"></div>
+    <div class="post-card-body">
+      <div class="post-card-meta">
+        <div class="post-card-date">${fmtDate(p.date)} · ${STATUS_LABEL[p.status]||'Bozza'}</div>
+        <div class="post-card-badges"><span class="badge badge-lang">${p.lang||'IT'}</span><span class="badge badge-cat">${CAT_LABEL[p.cat]}</span></div>
+      </div>
+      <div class="post-card-title">${p.title}</div>
+      <div class="post-card-hook">${p.hook||p.content?.slice(0,120)||'—'}</div>
+    </div></div>
+    ${p.content?`<div class="post-card-content" id="pcc-${p.id}">${p.content}</div>`:''}
+    <div class="post-card-footer">
+      ${p.content?`<button class="pf-btn" onclick="toggleContent('${p.id}')">👁 Leggi</button>`:''}
+      <button class="pf-btn" onclick="copyPost('${p.id}')">📋 Copia</button>
+      ${!p.content?`<button class="pf-btn gen" onclick="genForPost('${p.id}')">✦ Genera</button>`:''}
+      <button class="pf-btn pub" onclick="openModal('${p.id}')">⋯</button>
+    </div>
+  </div>`).join('');
+}
+
+function toggleContent(id){const el=document.getElementById('pcc-'+id);if(el)el.classList.toggle('open')}
+function copyPost(id){const p=posts.find(x=>x.id===id);if(p?.content){navigator.clipboard.writeText(p.content);toast('Copiato!',true)}}
+
+async function genForPost(id){
+  const p=posts.find(x=>x.id===id);if(!p)return;
+  const el=document.getElementById('pc-'+id);
+  if(el)el.insertAdjacentHTML('beforeend','<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;color:var(--gold);font-size:13px"><div class="gen-dot"></div><div class="gen-dot"></div><div class="gen-dot"></div> Generazione…</div>');
+  const prompt=`Scrivi in ${p.lang==='EN'?'inglese':'italiano'} un post LinkedIn sul tema: "${p.title}"\nHook: "${p.hook||p.title}"\nTono autorevole e autentico. Esperienza reale nel settore bioenergy italiano. Includi imgPrompt fotografico realistico.`;
+  try{
+    const res=await callAI(prompt);
+    const idx=posts.findIndex(x=>x.id===id);
+    posts[idx]={...posts[idx],content:res.content,imgPrompt:res.imgPrompt};
+    save();renderPosts();toast('Post generato!',true);
+  }catch{toast('Errore generazione',false)}
+}
+
+function filterPosts(f,el){currentFilter=f;document.querySelectorAll('.posts-filters .filt').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderPosts()}
+function updateStats(){document.getElementById('st-total').textContent=posts.length;document.getElementById('st-sched').textContent=posts.filter(p=>p.status==='scheduled').length;document.getElementById('st-pub').textContent=posts.filter(p=>p.status==='published').length}
+function updateBadge(){document.getElementById('hdr-badge').textContent=posts.length+' post'}
+
+function openModal(id){
+  modalPostId=id;const p=posts.find(x=>x.id===id);if(!p)return;
+  document.getElementById('modal-title').textContent=p.title;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <select id="modal-status" style="flex:1;padding:10px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Karla',sans-serif;-webkit-appearance:none">
+        <option value="draft" ${p.status==='draft'?'selected':''}>Bozza</option>
+        <option value="scheduled" ${p.status==='scheduled'?'selected':''}>Schedulato</option>
+        <option value="published" ${p.status==='published'?'selected':''}>Pubblicato</option>
+      </select>
+      <input type="date" id="modal-date" value="${p.date}" style="flex:1;padding:10px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Karla',sans-serif">
+    </div>
+    <button onclick="deletePost('${id}')" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:'Karla',sans-serif;font-weight:700;cursor:pointer">🗑 Elimina post</button>`;
+  document.getElementById('post-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('post-modal').classList.remove('open');modalPostId=null}
+function saveModalPost(){
+  if(!modalPostId)return;
+  const idx=posts.findIndex(x=>x.id===modalPostId);
+  posts[idx]={...posts[idx],status:document.getElementById('modal-status').value,date:document.getElementById('modal-date').value};
+  save();renderPosts();closeModal();toast('Aggiornato!',true);
+}
+function deletePost(id){if(!confirm('Eliminare?'))return;posts=posts.filter(p=>p.id!==id);save();renderPosts();closeModal();toast('Eliminato',false)}
+
+function calMonth(d){calDate.setMonth(calDate.getMonth()+d);renderCal()}
+function renderCal(){
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  document.getElementById('cal-title').textContent=MONTHS[m]+' '+y;
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML=DAYS.map(d=>`<div class="cal-day-hdr">${d}</div>`).join('');
+  let sd=new Date(y,m,1).getDay();sd=sd===0?6:sd-1;
+  const dim=new Date(y,m+1,0).getDate();
+  const today=new Date().toISOString().split('T')[0];
+  for(let i=0;i<sd;i++)grid.innerHTML+=`<div class="cal-day other"></div>`;
+  for(let day=1;day<=dim;day++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const all=[...posts,...CAMPAIGN.filter(c=>!posts.find(p=>p.id===c.id))].filter(p=>p.date===ds);
+    const pills=all.slice(0,2).map(p=>`<div class="cal-pill cat-${p.cat}">${p.title.slice(0,16)}</div>`).join('');
+    grid.innerHTML+=`<div class="cal-day${ds===today?' today':''}"><div class="cal-day-num">${day}</div>${pills}</div>`;
+  }
+}
+
+function exportICS(){
+  const all=posts.filter(p=>p.content);
+  if(!all.length){toast('Nessun post con testo',false);return}
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MG LinkedIn//IT','CALSCALE:GREGORIAN'];
+  all.forEach(p=>{
+    const d=p.date.replace(/-/g,'');
+    const desc=(p.content+(p.imgPrompt?'\\n\\n📷 '+p.imgPrompt:'')).replace(/\n/g,'\\n').replace(/,/g,'\\,');
+    lines.push('BEGIN:VEVENT',`UID:mg-li-${p.id}@verdalia`,`DTSTART;VALUE=DATE:${d}`,`DTEND;VALUE=DATE:${d}`,`SUMMARY:📝 ${p.title}`,`DESCRIPTION:${desc}`,'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const blob=new Blob([lines.join('\r\n')],{type:'text/calendar'});
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'linkedin-posts.ics'});
+  a.click();URL.revokeObjectURL(a.href);
+  toast(all.length+' post esportati in .ics',true);
+}
+
+async function genFullCampaign(){
+  const toGen=CAMPAIGN.filter(c=>!posts.find(p=>p.id===c.id));
+  if(!toGen.length){toast('Campagna già generata!',true);return}
+  if(!confirm(`Generare ${toGen.length} post AI?\nCi vorrà qualche minuto.`))return;
+  toast('Avvio campagna…',true);let done=0;
+  for(const c of toGen){
+    const prompt=`Scrivi in ${c.lang==='EN'?'inglese':'italiano'} un post LinkedIn: "${c.title}"\nHook: "${c.hook}"\nTono autorevole, autentico, settore bioenergy italiano. Includi imgPrompt.`;
+    try{
+      const res=await callAI(prompt);
+      posts.push({id:c.id,title:c.title,cat:c.cat,lang:c.lang,date:c.date,hook:c.hook,status:'scheduled',content:res.content,imgPrompt:res.imgPrompt,created:Date.now()});
+      done++;save();if(done%10===0)toast(done+'/'+toGen.length+' generati…',true);
+    }catch{}
+    await new Promise(r=>setTimeout(r,400));
+  }
+  toast('✓ '+done+' post generati!',true);renderPosts();
+}
+
+function resetAll(){if(!confirm('Eliminare TUTTI i post?'))return;posts=[];save();renderPosts();toast('Reset completato',false)}
+
+let toastTimer;
+function toast(msg,isGold=true){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast'+(isGold?' gold':'');t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+document.getElementById('post-modal').addEventListener('click',e=>{if(e.target.id==='post-modal')closeModal()});
+
+// iOS install banner
+if(/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.navigator.standalone){
+  document.getElementById('ios-banner').classList.add('show');
+}
+
+// Init
+if(posts.length===0){
+  CAMPAIGN.forEach(c=>posts.push({...c,status:'scheduled',content:'',imgPrompt:'',created:Date.now()}));
+  save();
+}
+updateTopics();updateBadge();updateStats();renderCal();
+</script>
+</body>
+</html>
