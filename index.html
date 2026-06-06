@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StockHunter">
+<title>StockHunter — Trova i migliori titoli</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #03050a;
+  --surface: #080d14;
+  --card:    #0c1220;
+  --border:  #141f33;
+  --border2: #1e2f4a;
+  --text:    #e2eaf5;
+  --dim:     #7a8fa8;
+  --muted:   #3a4f6a;
+  --green:   #00e5a0;
+  --red:     #ff3d5a;
+  --amber:   #ffaa00;
+  --blue:    #3d8bff;
+  --purple:  #9d6fff;
+  --mono:    'Space Mono', monospace;
+  --sans:    'Space Grotesk', sans-serif;
+  --r:       16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* GRID BG */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
+}
+
+/* HEADER */
+.header { margin-bottom: 32px; }
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, var(--text), var(--blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.tagline {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-left: 48px;
+}
+
+/* FORM CARD */
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 24px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.form-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--green));
+}
+.form-title {
+  font-size: 0.7rem;
+  font-family: var(--mono);
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 20px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media(max-width:500px) { .form-grid { grid-template-columns: 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field label {
+  font-size: 0.65rem;
+  font-family: var(--mono);
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.field input, .field select {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+  width: 100%;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px #3d8bff18;
+}
+.field select option { background: #0c1220; }
+
+/* RISK SELECTOR */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.risk-btn {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+.risk-btn.active-low    { background: #00e5a018; border-color: var(--green); color: var(--green); }
+.risk-btn.active-medium { background: #ffaa0018; border-color: var(--amber); color: var(--amber); }
+.risk-btn.active-high   { background: #ff3d5a18; border-color: var(--red);   color: var(--red); }
+
+/* SECTORS */
+.sector-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 20px;
+}
+.sector-chip {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.sector-chip.active {
+  background: #3d8bff18;
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* SEARCH BTN */
+.search-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 15px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.search-btn:active { transform: scale(0.98); opacity: 0.9; }
+.search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* LOADING */
+.loading {
+  display: none;
+  text-align: center;
+  padding: 40px 20px;
+}
+.loading.show { display: block; }
+.loading-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+.loading-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--green));
+  border-radius: 2px;
+  animation: loadbar 2s ease-in-out infinite;
+  width: 60%;
+}
+@keyframes loadbar {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.loading-text {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--dim);
+  letter-spacing: 1px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
+
+/* RESULTS */
+.results { display: none; }
+.results.show { display: block; }
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.results-title {
+  font-size: 0.68rem;
+  font-family: var(--mono);
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.results-meta {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+
+/* STOCK CARDS */
+.stock-cards { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+
+.stock-card {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  overflow: hidden;
+  animation: fadeUp 0.4s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.stock-card:nth-child(2) { animation-delay: 0.1s; }
+.stock-card:nth-child(3) { animation-delay: 0.2s; }
+.stock-card:nth-child(4) { animation-delay: 0.3s; }
+
+.stock-card.rank-1 { border-left: 3px solid var(--green); }
+.stock-card.rank-2 { border-left: 3px solid var(--blue); }
+.stock-card.rank-3 { border-left: 3px solid var(--purple); }
+.stock-card.rank-4 { border-left: 3px solid var(--amber); }
+
+.stock-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+  gap: 12px;
+}
+.stock-left { flex: 1; min-width: 0; }
+.stock-rank {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  margin-bottom: 3px;
+}
+.stock-ticker {
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.stock-name {
+  font-size: 0.72rem;
+  color: var(--dim);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stock-right { text-align: right; flex-shrink: 0; }
+.stock-price {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.stock-upside {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  margin-top: 3px;
+}
+
+/* METRICS ROW */
+.stock-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+}
+@media(max-width:480px) { .stock-metrics { grid-template-columns: repeat(2, 1fr); } }
+.stock-metric {
+  background: var(--card);
+  padding: 10px 12px;
+  text-align: center;
+}
+.sm-label {
+  font-size: 0.58rem;
+  font-family: var(--mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.sm-value {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+/* STRATEGY BAR */
+.stock-strategy {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.ss-item {}
+.ss-label {
+  font-size: 0.58rem;
+  font-family: var(--mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.ss-value {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  margin-top: 3px;
+  font-weight: 700;
+}
+
+/* CATALYST */
+.stock-catalyst {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 0.74rem;
+  color: var(--dim);
+  line-height: 1.5;
+}
+.stock-catalyst strong { color: var(--text); }
+
+/* CONFIDENCE BAR */
+.confidence-wrap {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+}
+.conf-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  font-family: var(--mono);
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.conf-bar {
+  height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.conf-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s ease;
+}
+
+/* STRATEGY SUMMARY */
+.strategy-box {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 20px;
+  margin-bottom: 14px;
+}
+.strategy-box h3 {
+  font-size: 0.68rem;
+  font-family: var(--mono);
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 14px;
+}
+.strategy-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--dim);
+}
+.strategy-line:last-child { border-bottom: none; }
+.strategy-line span:last-child {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* DISCLAIMER */
+.disclaimer {
+  background: #ffaa0008;
+  border: 1px solid #ffaa0022;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.68rem;
+  color: var(--amber);
+  line-height: 1.5;
+  margin-top: 16px;
+}
+
+/* RESET BTN */
+.reset-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  padding: 12px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  margin-top: 12px;
+}
+
+/* COLORS */
+.green  { color: var(--green) !important; }
+.red    { color: var(--red) !important; }
+.amber  { color: var(--amber) !important; }
+.blue   { color: var(--blue) !important; }
+.purple { color: var(--purple) !important; }
+
+/* BADGE */
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  margin-left: 6px;
+  vertical-align: middle;
+  font-weight: 700;
+}
+.badge-spec   { background:#ff3d5a18; color:var(--red);    border:1px solid #ff3d5a33; }
+.badge-core   { background:#3d8bff18; color:var(--blue);   border:1px solid #3d8bff33; }
+.badge-medium { background:#ffaa0018; color:var(--amber);  border:1px solid #ffaa0033; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">🎯</div>
+      <h1>StockHunter</h1>
+    </div>
+    <div class="tagline">AI · Best Performers · Strategy</div>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-card">
+    <div class="form-title">// Parametri di Ricerca</div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>Budget (€/$)</label>
+        <input type="number" id="f-budget" placeholder="es. 3000" min="100" step="100">
+      </div>
+      <div class="field">
+        <label>Durata</label>
+        <select id="f-duration">
+          <option value="1w">1 settimana</option>
+          <option value="2w" selected>2 settimane</option>
+          <option value="1m">1 mese</option>
+          <option value="3m">3 mesi</option>
+          <option value="6m">6 mesi</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>N° Titoli</label>
+        <select id="f-count">
+          <option value="2">2 titoli</option>
+          <option value="3" selected>3 titoli</option>
+          <option value="4">4 titoli</option>
+          <option value="5">5 titoli</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Mercato</label>
+        <select id="f-market">
+          <option value="us">USA (Nasdaq/NYSE)</option>
+          <option value="eu">Europa</option>
+          <option value="mix">Globale (mix)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- RISK -->
+    <div class="form-title">// Profilo di Rischio</div>
+    <div class="risk-grid">
+      <div class="risk-btn" id="risk-low" onclick="setRisk('low')">🟢 Basso<br><span style="font-size:0.55rem;opacity:0.7">ETF, Blue chip</span></div>
+      <div class="risk-btn active-medium" id="risk-medium" onclick="setRisk('medium')">🟡 Medio<br><span style="font-size:0.55rem;opacity:0.7">Growth, Mid cap</span></div>
+      <div class="risk-btn" id="risk-high" onclick="setRisk('high')">🔴 Alto<br><span style="font-size:0.55rem;opacity:0.7">Small cap, Catalyst</span></div>
+    </div>
+
+    <!-- SECTORS -->
+    <div class="form-title">// Settori (opzionale)</div>
+    <div class="sector-grid" id="sector-grid">
+      <div class="sector-chip" data-sector="AI">🤖 AI</div>
+      <div class="sector-chip" data-sector="Difesa">🛡 Difesa</div>
+      <div class="sector-chip" data-sector="Biotech">💊 Biotech</div>
+      <div class="sector-chip" data-sector="Energia">⚡ Energia</div>
+      <div class="sector-chip" data-sector="Semiconduttori">💾 Semiconduttori</div>
+      <div class="sector-chip" data-sector="Fintech">💳 Fintech</div>
+      <div class="sector-chip" data-sector="Spazio">🚀 Spazio</div>
+      <div class="sector-chip" data-sector="Cripto">🪙 Cripto</div>
+      <div class="sector-chip" data-sector="Qualsiasi">✨ Qualsiasi</div>
+    </div>
+
+    <button class="search-btn" id="search-btn" onclick="runSearch()">
+      <span>🔍</span> <span id="btn-label">Trova i Migliori Titoli</span>
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="loading-text" id="loading-text">ANALIZZANDO IL MERCATO...</div>
+    <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+    <div class="results-header">
+      <div class="results-title">// Proposta Titoli</div>
+      <div class="results-meta" id="results-meta"></div>
+    </div>
+    <div class="stock-cards" id="stock-cards"></div>
+    <div id="strategy-summary"></div>
+    <div class="disclaimer">⚠️ Solo a scopo informativo/educativo. Non è consulenza finanziaria. Verifica sempre dal tuo broker prima di operare. I rendimenti passati non garantiscono quelli futuri.</div>
+    <button class="reset-btn" onclick="resetSearch()">← Nuova Ricerca</button>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──
+let selectedRisk    = 'medium';
+let selectedSectors = [];
+
+// ── RISK ──
+function setRisk(r) {
+  selectedRisk = r;
+  document.querySelectorAll('.risk-btn').forEach(b => b.className = 'risk-btn');
+  document.getElementById('risk-' + r).classList.add('active-' + r);
+}
+
+// ── SECTORS ──
+document.querySelectorAll('.sector-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const s = chip.dataset.sector;
+    if (s === 'Qualsiasi') {
+      selectedSectors = [];
+      document.querySelectorAll('.sector-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.toggle('active');
+      return;
+    }
+    chip.classList.toggle('active');
+    if (chip.classList.contains('active')) {
+      selectedSectors.push(s);
+    } else {
+      selectedSectors = selectedSectors.filter(x => x !== s);
+    }
+  });
+});
+
+// ── SEARCH ──
+async function runSearch() {
+  const budget   = parseFloat(document.getElementById('f-budget').value);
+  const duration = document.getElementById('f-duration').value;
+  const count    = parseInt(document.getElementById('f-count').value);
+  const market   = document.getElementById('f-market').value;
+
+  if (!budget || budget < 100) {
+    alert('Inserisci un budget valido (minimo €100)'); return;
+  }
+
+  const btn = document.getElementById('search-btn');
+  btn.disabled = true;
+  document.getElementById('btn-label').textContent = 'Analizzando...';
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('results').classList.remove('show');
+
+  const durationLabel = {
+    '1w': '1 settimana', '2w': '2 settimane',
+    '1m': '1 mese', '3m': '3 mesi', '6m': '6 mesi'
+  }[duration];
+
+  const sectors = selectedSectors.length > 0
+    ? selectedSectors.join(', ')
+    : 'qualsiasi settore';
+
+  const riskLabel = { low: 'basso', medium: 'medio', high: 'alto' }[selectedRisk];
+
+  const marketLabel = { us: 'mercato USA (Nasdaq/NYSE)', eu: 'mercati europei', mix: 'mercati globali' }[market];
+
+  const loadingMsgs = [
+    'SCANSIONE MERCATI IN CORSO...',
+    'ANALISI CATALIZZATORI...',
+    'CALCOLO RISK/REWARD...',
+    'OTTIMIZZAZIONE PORTAFOGLIO...',
+    'GENERAZIONE STRATEGIA...'
+  ];
+  let msgIdx = 0;
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % loadingMsgs.length;
+    document.getElementById('loading-text').textContent = loadingMsgs[msgIdx];
+  }, 1200);
+
+  // ── CALL CLAUDE API ──
+  const prompt = `Sei un analista finanziario esperto di trading speculativo e swing trading. 
+L'utente vuole investire €${budget} in ${count} titoli azionari con orizzonte temporale di ${durationLabel}, profilo di rischio ${riskLabel}, su ${marketLabel}, focalizzandosi su: ${sectors}.
+
+Fornisci ESATTAMENTE ${count} titoli con il massimo potenziale nel timeframe indicato. Considera:
+- Catalizzatori imminenti (earnings, FDA dates, product launches, contratti)
+- Momentum tecnico e volumi
+- Sentiment degli analisti
+- Risk/reward favorevole
+
+Rispondi SOLO con un JSON valido, senza testo prima o dopo, senza markdown, in questo formato esatto:
+{
+  "context": "breve frase di contesto sul mercato attuale (max 80 caratteri)",
+  "stocks": [
+    {
+      "ticker": "AAPL",
+      "name": "Apple Inc.",
+      "sector": "Tecnologia",
+      "type": "core",
+      "currentPrice": 185.50,
+      "currency": "USD",
+      "targetPrice": 210.00,
+      "stopLoss": 170.00,
+      "upside": 13.2,
+      "confidence": 72,
+      "timeframe": "${durationLabel}",
+      "allocation": 33,
+      "shares": 5,
+      "risk": "medio",
+      "catalyst": "Breve descrizione del catalizzatore principale e perché questo titolo ora",
+      "signal": "BUY",
+      "analystTarget": 220.00,
+      "dayChange": 1.2
+    }
+  ],
+  "totalBudget": ${budget},
+  "expectedReturn": 15.5,
+  "maxDrawdown": -8.0,
+  "strategy": "Descrizione breve della strategia complessiva (max 120 caratteri)"
+}
+
+Regole importanti:
+- type deve essere "spec" per speculativi, "core" per titoli solidi, "medium" per via di mezzo
+- confidence da 0 a 100
+- upside deve essere la percentuale di guadagno attesa realistica nel timeframe
+- stopLoss deve essere realistico (non troppo stretto, non troppo largo)
+- allocation somma a 100
+- shares = numero intero di azioni acquistabili con la quota di budget assegnata
+- catalyst deve essere specifico e attuale, non generico
+- Usa titoli REALI quotati in borsa`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    clearInterval(msgInterval);
+
+    const data = await response.json();
+    const raw  = data?.content?.[0]?.text || '';
+
+    let parsed;
+    try {
+      // Strip any markdown fences just in case
+      const clean = raw.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      throw new Error('Risposta non valida dal modello');
+    }
+
+    renderResults(parsed, budget, durationLabel);
+
+  } catch(err) {
+    clearInterval(msgInterval);
+    console.error(err);
+    // Fallback: mostra errore leggibile
+    document.getElementById('loading').classList.remove('show');
+    alert('Errore nella generazione. Controlla la connessione e riprova.');
+  }
+
+  btn.disabled = false;
+  document.getElementById('btn-label').textContent = 'Trova i Migliori Titoli';
+}
+
+// ── RENDER ──
+function renderResults(data, budget, durationLabel) {
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results-meta').textContent =
+    data.context || '';
+
+  const RANK_COLORS = ['var(--green)', 'var(--blue)', 'var(--purple)', 'var(--amber)', 'var(--dim)'];
+
+  const cards = (data.stocks || []).map((s, i) => {
+    const typeLabel = s.type === 'spec' ? 'SPEC' : s.type === 'core' ? 'CORE' : 'MED';
+    const typeBadge = s.type === 'spec' ? 'badge-spec' : s.type === 'core' ? 'badge-core' : 'badge-medium';
+    const upsideClass = s.upside >= 0 ? 'green' : 'red';
+    const confColor = s.confidence >= 70 ? 'var(--green)' : s.confidence >= 50 ? 'var(--amber)' : 'var(--red)';
+    const dayClass = (s.dayChange || 0) >= 0 ? 'green' : 'red';
+    const rr = s.stopLoss && s.currentPrice && s.targetPrice
+      ? ((s.targetPrice - s.currentPrice) / (s.currentPrice - s.stopLoss)).toFixed(1)
+      : '—';
+    const curr = s.currency === 'EUR' ? '€' : '$';
+
+    return `
+    <div class="stock-card rank-${i+1}" style="animation-delay:${i*0.1}s">
+      <div class="stock-top">
+        <div class="stock-left">
+          <div class="stock-rank">#${i+1} PICK</div>
+          <div class="stock-ticker" style="color:${RANK_COLORS[i]}">${s.ticker}<span class="badge ${typeBadge}">${typeLabel}</span></div>
+          <div class="stock-name">${s.name} · ${s.sector}</div>
+        </div>
+        <div class="stock-right">
+          <div class="stock-price">${curr}${fmt(s.currentPrice)}</div>
+          <div class="stock-upside ${upsideClass}">${s.upside >= 0 ? '+' : ''}${s.upside?.toFixed(1)}% atteso</div>
+        </div>
+      </div>
+
+      <div class="stock-metrics">
+        <div class="stock-metric">
+          <div class="sm-label">Stop Loss</div>
+          <div class="sm-value red">${curr}${fmt(s.stopLoss)}</div>
+        </div>
+        <div class="stock-metric">
+          <div class="sm-label">Target</div>
+          <div class="sm-value green">${curr}${fmt(s.targetPrice)}</div>
+        </div>
+        <div class="stock-metric">
+          <div class="sm-label">R/R Ratio</div>
+          <div class="sm-value ${parseFloat(rr) >= 1.5 ? 'green' : 'amber'}">1 : ${rr}</div>
+        </div>
+        <div class="stock-metric">
+          <div class="sm-label">Oggi</div>
+          <div class="sm-value ${dayClass}">${(s.dayChange||0) >= 0 ? '+' : ''}${(s.dayChange||0).toFixed(2)}%</div>
+        </div>
+      </div>
+
+      <div class="stock-strategy">
+        <div class="ss-item">
+          <div class="ss-label">Allocazione</div>
+          <div class="ss-value blue">${s.allocation}% · ${curr}${fmt(budget * s.allocation / 100)}</div>
+        </div>
+        <div class="ss-item">
+          <div class="ss-label">Azioni</div>
+          <div class="ss-value">~${s.shares} az.</div>
+        </div>
+        <div class="ss-item">
+          <div class="ss-label">Target Analisti</div>
+          <div class="ss-value green">${curr}${fmt(s.analystTarget)}</div>
+        </div>
+      </div>
+
+      <div class="stock-catalyst">
+        <strong>📌 Catalizzatore:</strong> ${s.catalyst}
+      </div>
+
+      <div class="confidence-wrap">
+        <div class="conf-label">
+          <span>Confidenza AI</span>
+          <span style="color:${confColor}">${s.confidence}%</span>
+        </div>
+        <div class="conf-bar">
+          <div class="conf-fill" style="width:${s.confidence}%; background:${confColor}"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('stock-cards').innerHTML = cards;
+
+  // Strategy summary
+  const expected = data.expectedReturn || 0;
+  const maxDD    = data.maxDrawdown || 0;
+  document.getElementById('strategy-summary').innerHTML = `
+    <div class="strategy-box">
+      <h3>// Riepilogo Strategia · ${durationLabel}</h3>
+      <div class="strategy-line"><span>Strategia</span><span>${data.strategy || '—'}</span></div>
+      <div class="strategy-line"><span>Budget Totale</span><span>€${fmt(budget)}</span></div>
+      <div class="strategy-line"><span>Rendimento Atteso</span><span class="green">+${expected?.toFixed(1)}%</span></div>
+      <div class="strategy-line"><span>Gain Potenziale</span><span class="green">+€${fmt(budget * expected / 100)}</span></div>
+      <div class="strategy-line"><span>Max Drawdown (worst case)</span><span class="red">${maxDD?.toFixed(1)}%</span></div>
+      <div class="strategy-line"><span>Perdita Massima</span><span class="red">€${fmt(budget * Math.abs(maxDD) / 100)}</span></div>
+    </div>`;
+}
+
+// ── UTILS ──
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Math.abs(n).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function resetSearch() {
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('f-budget').value = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
